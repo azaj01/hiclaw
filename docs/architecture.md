@@ -85,13 +85,15 @@ MinIO provides centralized file storage accessible via HTTP:
 ### Manager Agent (OpenClaw)
 
 The Manager Agent coordinates the entire team:
-- Receives tasks from human via Matrix DM
+- Receives tasks from human via Matrix DM **or any other configured channel** (Discord, Feishu, Telegram, etc.)
 - Creates Workers (Matrix accounts + Higress consumers + config files)
 - Assigns and tracks tasks
 - Runs heartbeat checks every 15 minutes
 - Manages credentials and access control
 - Automatically stops idle Worker containers and restarts them on task assignment
 - Monitors Matrix room session expiry and sends keepalive messages on request
+- Routes daily notifications to the admin's **primary channel** (with Matrix DM fallback)
+- Supports **cross-channel escalation**: sends urgent questions to the admin's primary channel and routes replies back to originating Matrix rooms
 
 ### Worker Agent (OpenClaw)
 
@@ -153,6 +155,8 @@ The Manager's own working directory lives on the host and is bind-mounted into t
 ├── workers-registry.json    # Worker skill assignments and room IDs
 ├── state.json               # Active task state
 ├── worker-lifecycle.json    # Worker container status and idle tracking
+├── primary-channel.json     # Admin's preferred primary channel for proactive notifications
+├── trusted-contacts.json    # Non-admin contacts allowed to converse with the Manager
 ├── .session-scan-last-run   # Timestamp of last Matrix session expiry scan
 └── memory/                  # Manager's memory files (MEMORY.md, YYYY-MM-DD.md)
 ```

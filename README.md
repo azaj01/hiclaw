@@ -8,6 +8,7 @@ HiClaw lets you deploy a team of AI Agents that communicate via instant messagin
 
 - **Agent Teams**: Manager Agent coordinates multiple Worker Agents to complete complex tasks
 - **Human in the Loop**: All Agent communication happens in Matrix Rooms where humans can observe and intervene at any time
+- **Multi-Channel Admin**: Admin can contact the Manager from Discord, Feishu, Telegram, and other OpenClaw-supported channels; the Manager recognizes them as the admin and can route daily notifications to their preferred (primary) channel
 - **AI Gateway**: Unified LLM and MCP Server access through Higress, with per-Worker credential management
 - **Stateless Workers**: Workers load all config from centralized storage -- destroy and recreate freely
 - **MCP Integration**: External tools (GitHub, etc.) accessed via MCP Servers with centralized credential management

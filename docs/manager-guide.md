@@ -54,6 +54,42 @@ To add a new MCP Server (e.g., GitLab, Jira):
 3. Authorize consumers: `PUT /v1/mcpServer/consumers`
 4. Create a skill for Workers that documents the available tools
 
+## Multi-Channel Communication
+
+The Manager supports multiple communication channels beyond the built-in Matrix DM. Admins can reach the Manager from Discord, Feishu, Telegram, or any other channel supported by OpenClaw.
+
+### Adding a Non-Matrix Channel
+
+1. Configure the channel in the Manager's `openclaw.json` (or `manager-openclaw.json.tmpl`) by adding a `channels.<channel>` block with the admin's user ID in `dm.allowFrom`. See [OpenClaw channel docs](https://github.com/nicepkg/openclaw) for per-channel setup.
+2. Restart (or reload config) to activate the new channel.
+3. Contact the Manager from that channel — it will recognize you as the admin because only allowlisted senders can reach it.
+
+### Primary Channel
+
+The Manager sends proactive notifications (daily keepalive, etc.) to the **primary channel**. By default this is Matrix DM.
+
+**Setting the primary channel**: On the first DM from a new channel, the Manager will ask whether you want to make it the primary channel. Reply "yes" to confirm. You can also switch at any time by saying e.g. "switch primary channel to Discord".
+
+**Stored in**: `~/hiclaw-manager/primary-channel.json` (persists across restarts)
+
+**Fallback**: If the primary channel is unavailable or not configured, the Manager automatically falls back to Matrix DM.
+
+### Trusted Contacts
+
+By default, only the admin can interact with the Manager. If you want to allow another person (e.g. a teammate) to ask questions without giving them admin rights, you can add them as a **Trusted Contact**:
+
+1. Ask them to send a message to the Manager on any configured channel.
+2. Tell the Manager: "you can talk to the person who just messaged me" (or similar).
+3. The Manager adds them to `~/hiclaw-manager/trusted-contacts.json`.
+
+Trusted Contacts can receive general responses, but the Manager will **never** share sensitive information (API keys, credentials, Worker configs) with them and will not execute any management operations on their behalf.
+
+To revoke access: "stop talking to [person]" — the Manager removes them from the list.
+
+### Cross-Channel Escalation
+
+When the Manager is working inside a Matrix project room and needs an urgent admin decision, it can escalate to the admin on their primary channel (e.g. send a question to your Discord DM) without requiring you to be in the Matrix room. Your reply is automatically routed back to the originating room to continue the workflow.
+
 ## Session Management
 
 ### OpenClaw Session Retention
@@ -78,7 +114,7 @@ Each day between 10:00 and 10:59, the Manager checks whether it has already sent
 
 1. Lists all active group rooms (Worker rooms + active project rooms)
 2. Reads the previous day's preferences (which rooms were selected)
-3. Sends a notification in **the Human Admin's DM** that includes:
+3. Sends a notification via the **primary channel** (or Matrix DM if no primary channel is configured) that includes:
    - The list of active rooms subject to 2-day idle reset
    - Why keepalive matters: Workers' conversation history will be wiped after 2 days of inactivity, losing context for ongoing tasks
    - Why skipping keepalive is valid: fewer messages in history means lower token cost per LLM call
