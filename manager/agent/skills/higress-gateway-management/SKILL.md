@@ -204,3 +204,4 @@ For creating, updating, listing, and deleting MCP Servers, as well as managing c
 - **Version field**: AI Routes and Providers have a `version` field. Always GET before PUT to get the latest version.
 - **Consumer version**: Consumers do NOT have a `version` field
 - **MCP Server**: See `mcp-server-management` skill for full details on creating and managing MCP servers
+

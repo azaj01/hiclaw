@@ -153,3 +153,4 @@ Common issues:
 ## Integration with Task Coordination
 
 Always use the `.processing` marker to prevent conflicts when both Worker and Manager might modify the workspace.
+

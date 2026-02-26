@@ -58,18 +58,12 @@ jobs:
           fi
 
       # Tag/manual: multi-arch build + push
+      # When VERSION is a semver tag (e.g. v0.1.0), the Makefile automatically
+      # also pushes :latest in the same buildx call, so no separate step needed.
       - name: Build and push multi-arch images
         run: |
           make push \
             VERSION=${{ steps.meta.outputs.version }} \
-            REGISTRY=${{ env.REGISTRY }} \
-            REPO=${{ env.REPO }}
-
-      - name: Tag latest (on version tag)
-        if: steps.meta.outputs.is_tag == 'true'
-        run: |
-          make push \
-            VERSION=latest \
             REGISTRY=${{ env.REGISTRY }} \
             REPO=${{ env.REPO }}
 

@@ -230,3 +230,4 @@ Merging feature branch with merge commit
 3. **Handle errors**: If something fails, read the error and adjust your approach
 4. **Sync before and after**: Always sync to/from MinIO when exchanging workspace with Manager
 5. **Use github-operations for PRs**: After pushing, use the MCP tools to create/manage PRs
+

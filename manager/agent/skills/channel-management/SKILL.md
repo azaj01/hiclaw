@@ -185,3 +185,4 @@ If `primary-channel.json` is missing, `confirmed: false`, or channel is `matrix`
 4. Fallback to Matrix DM is automatic; no manual intervention needed for individual failures
 
 **Admin confirmed wrong channel**: Admin wants to revert to Matrix DM. Write `{"confirmed": false}` to `primary-channel.json`.
+

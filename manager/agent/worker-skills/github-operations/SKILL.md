@@ -407,3 +407,4 @@ mcporter --config "${MCPORTER_CONFIG}" \
 3. **Create PR** → Use `create_pull_request` (this skill)
 4. **Review PR** → Use `add_issue_comment`, `create_pull_request_review_comment` (this skill)
 5. **Merge PR** → Use `merge_pull_request` (this skill)
+

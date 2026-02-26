@@ -151,3 +151,4 @@ This coordination mechanism is used by:
 3. **Remove promptly**: Remove marker as soon as work completes
 4. **Handle crashes**: The expiration mechanism handles unexpected failures
 5. **Respect the marker**: Never modify a task directory with an active marker
+

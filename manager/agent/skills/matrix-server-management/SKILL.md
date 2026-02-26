@@ -157,3 +157,4 @@ curl -s "http://127.0.0.1:6167/_matrix/client/v3/rooms/<ROOM_ID>/messages?dir=b&
 - **User ID format**: `@<username>:${HICLAW_MATRIX_DOMAIN}`
 - **Registration token**: Stored in `HICLAW_REGISTRATION_TOKEN` env var
 - **Direct access**: Use `http://127.0.0.1:6167` for server management (not through Higress Gateway port 8080)
+

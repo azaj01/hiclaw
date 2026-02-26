@@ -69,12 +69,11 @@ RUN ln -sf /usr/local/lib/node_modules/mcporter/dist/cli.js /usr/local/bin/mcpor
 ENV PATH="/opt/openclaw/packages/clawdbot/node_modules/.bin:${PATH}"
 ENV OPENCLAW_CONFIG_PATH="/root/.openclaw/openclaw.json"
 
-# Worker entrypoint, agent skills, and sync scripts
+# Worker entrypoint and sync scripts
 COPY scripts/ /opt/hiclaw/scripts/
-COPY agent/ /opt/hiclaw/agent/
 RUN chmod +x /opt/hiclaw/scripts/*.sh && \
-    find /opt/hiclaw/agent/skills/*/scripts -name '*.sh' -exec chmod +x {} + 2>/dev/null || true && \
-    ln -s /opt/hiclaw/agent/skills/file-sync/scripts/hiclaw-sync.sh /usr/local/bin/hiclaw-sync
+    printf '#!/bin/bash\nexec "${HOME}/hiclaw-fs/agents/${HICLAW_WORKER_NAME}/skills/file-sync/scripts/hiclaw-sync.sh" "$@"\n' \
+    > /usr/local/bin/hiclaw-sync && chmod +x /usr/local/bin/hiclaw-sync
 
 # hiclaw-fs root (mirrors Manager's ~/hiclaw-fs/ layout)
 RUN mkdir -p /root/hiclaw-fs /root/.openclaw

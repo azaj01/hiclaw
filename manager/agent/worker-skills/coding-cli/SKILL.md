@@ -176,3 +176,4 @@ If one CLI delegation doesn't fully complete the task (e.g., the first run fixed
 - **Show the pattern**: reference existing code in the same file as the style guide
 - **Limit scope**: tell the CLI "only modify file X, do not change tests or other files"
 - **Verify command**: include how to check correctness, e.g. "run `go test ./...` to verify"
+

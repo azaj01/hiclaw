@@ -273,3 +273,4 @@ EOF
 - **SSE endpoint**: MCP Server SSE endpoint (`/mcp/<name>/sse`) always returns 200; auth is checked on `POST /mcp/<name>/message`
 - **Template re-use**: To add a new MCP server type, add its YAML to `/opt/hiclaw/agent/skills/mcp-server-management/references/mcp-<name>.yaml` and follow the same pattern
 - **Token substitution**: Use `sed` to substitute credential placeholders in YAML templates before converting to rawConfigurations
+

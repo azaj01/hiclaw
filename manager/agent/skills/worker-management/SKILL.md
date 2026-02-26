@@ -294,3 +294,4 @@ After pushing skills, the script notifies the affected Worker(s) via Matrix @men
 - OpenClaw config hot-reload: file-watch (~300ms) or `config.patch` API
 - **File sync**: after writing any file that a Worker (or another Worker) needs to read, always notify the target Worker via Matrix to run `hiclaw-sync`. This applies to config updates, task briefs, shared data, and cross-Worker collaboration artifacts. Workers have a `file-sync` skill for this. Background periodic sync (every 5 minutes) serves as fallback only
 - **Skills are Manager-controlled**: Workers cannot modify their own skills (local→remote sync excludes `skills/**`). Only Manager can push skill changes via `push-worker-skills.sh`
+

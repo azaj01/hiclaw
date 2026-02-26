@@ -80,18 +80,26 @@ waitForService "Tuwunel" "127.0.0.1" 6167 120
 waitForService "MinIO" "127.0.0.1" 9000 120
 
 # ============================================================
-# Initialize Manager workspace (local only, not synced to MinIO)
-# On first boot: copy agent files from image.
-# On subsequent boots: files already exist from the mounted volume.
+# Initialize / upgrade Manager workspace (local only, not synced to MinIO)
+# First boot: full init via upgrade-builtins.sh
+# Subsequent boots: compare image version; upgrade only if changed
 # ============================================================
 mkdir -p ~/manager-workspace
+
+IMAGE_VERSION=$(cat /opt/hiclaw/agent/.builtin-version 2>/dev/null || echo "unknown")
+INSTALLED_VERSION=$(cat ~/manager-workspace/.builtin-version 2>/dev/null || echo "")
+
 if [ ! -f ~/manager-workspace/.initialized ]; then
-    log "Initializing manager workspace from image..."
-    cp -r /opt/hiclaw/agent/. ~/manager-workspace/
+    log "First boot: initializing manager workspace..."
+    bash /opt/hiclaw/scripts/init/upgrade-builtins.sh
     touch ~/manager-workspace/.initialized
-    log "Manager workspace initialized at ~/manager-workspace/"
+    log "Manager workspace initialized (version: ${IMAGE_VERSION})"
+elif [ "${IMAGE_VERSION}" != "${INSTALLED_VERSION}" ]; then
+    log "Upgrade detected: ${INSTALLED_VERSION} -> ${IMAGE_VERSION}"
+    bash /opt/hiclaw/scripts/init/upgrade-builtins.sh
+    log "Manager workspace upgraded to version: ${IMAGE_VERSION}"
 else
-    log "Manager workspace already initialized"
+    log "Workspace up to date (version: ${IMAGE_VERSION})"
 fi
 
 # Wait for mc mirror initialization (shared + worker data in ~/hiclaw-fs/)
@@ -277,6 +285,19 @@ if container_api_available; then
 else
     log "No container runtime socket found — Worker creation will output install commands"
     export HICLAW_CONTAINER_RUNTIME="none"
+fi
+
+# ============================================================
+# Push upgraded builtin Worker skills if upgrade happened
+# ============================================================
+if [ -f ~/manager-workspace/.upgrade-pending-worker-notify ]; then
+    log "Pushing upgraded builtin worker skills to registered workers..."
+    for skill in coding-cli git-delegation github-operations file-sync; do
+        bash /opt/hiclaw/agent/skills/worker-management/scripts/push-worker-skills.sh \
+            --skill "${skill}" 2>/dev/null \
+            || log "WARNING: Failed to push skill ${skill}"
+    done
+    rm -f ~/manager-workspace/.upgrade-pending-worker-notify
 fi
 
 # ============================================================

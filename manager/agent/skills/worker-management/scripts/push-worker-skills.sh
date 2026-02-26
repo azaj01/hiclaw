@@ -105,7 +105,19 @@ _push_skill_to_worker() {
     local skill="$2"
 
     if [ "${skill}" = "file-sync" ]; then
-        log "  Skipping file-sync for ${worker} (bootstrap skill, image-managed)"
+        # file-sync is now managed by Manager's worker-agent/ directory
+        local file_sync_src="/opt/hiclaw/agent/worker-agent/skills/file-sync"
+        if [ ! -d "${file_sync_src}" ]; then
+            log "  WARNING: file-sync source not found: ${file_sync_src}"
+            return 1
+        fi
+        log "  Pushing skill 'file-sync' to worker '${worker}'..."
+        mc mirror "${file_sync_src}/" "hiclaw/hiclaw-storage/agents/${worker}/skills/file-sync/" --overwrite \
+            2>&1 | tail -3 || {
+            log "  WARNING: Failed to push skill 'file-sync' to worker '${worker}'"
+            return 1
+        }
+        log "  Pushed skill 'file-sync' to worker '${worker}'"
         return 0
     fi
 
@@ -149,7 +161,7 @@ _notify_worker() {
         return 0
     fi
 
-    local msg="@${worker}:${MATRIX_DOMAIN} 我已向你的工作区推送了以下 skills 更新：[${skills_list}]。请运行以下命令同步：bash /opt/hiclaw/agent/skills/file-sync/scripts/hiclaw-sync.sh"
+    local msg="@${worker}:${MATRIX_DOMAIN} 我已向你的工作区推送了以下 skills 更新：[${skills_list}]。请运行以下命令同步：hiclaw-sync"
     local worker_id="@${worker}:${MATRIX_DOMAIN}"
 
     local txn_id
@@ -241,10 +253,6 @@ elif [ -n "${WORKER_NAME}" ]; then
 
 elif [ -n "${SKILL_NAME}" ]; then
     # Push specific skill to all workers that have it
-    if [ "${SKILL_NAME}" = "file-sync" ]; then
-        log "Skipping file-sync (bootstrap skill, image-managed)"
-        exit 0
-    fi
     WORKER_LIST=$(echo "${REGISTRY}" | jq -r --arg s "${SKILL_NAME}" \
         '.workers | to_entries[] | select(.value.skills // [] | map(select(. == $s)) | length > 0) | .key')
     if [ -z "${WORKER_LIST}" ]; then

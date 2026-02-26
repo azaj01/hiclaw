@@ -115,6 +115,9 @@ COPY scripts/ /opt/hiclaw/scripts/
 COPY agent/ /opt/hiclaw/agent/
 COPY configs/ /opt/hiclaw/configs/
 
+ARG BUILTIN_VERSION=latest
+RUN echo "${BUILTIN_VERSION}" > /opt/hiclaw/agent/.builtin-version
+
 # ---- Install AI coding CLI tools ----
 # gemini: symlink to dist/index.js so relative ESM imports resolve correctly
 # qodercli via official install script (best-effort; failure does not block build).
@@ -125,7 +128,8 @@ RUN curl -fsSL https://qoder.com/install.sh | bash || true
 RUN chmod +x /opt/hiclaw/scripts/init/*.sh /opt/hiclaw/scripts/lib/*.sh && \
     chmod +x /opt/hiclaw/scripts/setup-host-symlinks.sh && \
     find /opt/hiclaw/agent/skills/*/scripts -name '*.sh' -exec chmod +x {} + 2>/dev/null || true && \
-    find /opt/hiclaw/agent/worker-skills/*/scripts -name '*.sh' -exec chmod +x {} + 2>/dev/null || true
+    find /opt/hiclaw/agent/worker-skills/*/scripts -name '*.sh' -exec chmod +x {} + 2>/dev/null || true && \
+    find /opt/hiclaw/agent/worker-agent/skills/*/scripts -name '*.sh' -exec chmod +x {} + 2>/dev/null || true
 
 # ---- Ports ----
 # 8080: Higress Gateway (unified entry point)

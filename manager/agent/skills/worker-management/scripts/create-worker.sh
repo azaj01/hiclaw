@@ -384,6 +384,22 @@ mc stat "hiclaw/hiclaw-storage/agents/${WORKER_NAME}/openclaw.json" > /dev/null 
     || _fail "openclaw.json not found in MinIO after sync"
 log "  MinIO sync verified"
 
+# Push Worker agent files from Manager image (AGENTS.md + file-sync skill)
+WORKER_AGENT_SRC="/opt/hiclaw/agent/worker-agent"
+if [ -d "${WORKER_AGENT_SRC}" ]; then
+    log "  Pushing AGENTS.md (with builtin markers) to worker MinIO..."
+    mc cp "${WORKER_AGENT_SRC}/AGENTS.md" \
+        "hiclaw/hiclaw-storage/agents/${WORKER_NAME}/AGENTS.md" \
+        || log "  WARNING: Failed to push AGENTS.md"
+    log "  Pushing file-sync skill to worker MinIO..."
+    mc mirror "${WORKER_AGENT_SRC}/skills/file-sync/" \
+        "hiclaw/hiclaw-storage/agents/${WORKER_NAME}/skills/file-sync/" --overwrite \
+        || log "  WARNING: Failed to push file-sync skill"
+    log "  Worker agent files pushed"
+else
+    log "  WARNING: worker-agent directory not found at ${WORKER_AGENT_SRC}"
+fi
+
 # ============================================================
 # Step 8b: Add new Worker to all existing Workers' groupAllowFrom
 # ============================================================

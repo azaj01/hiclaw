@@ -37,10 +37,11 @@ mc mirror "hiclaw/hiclaw-storage/shared/" "${HICLAW_ROOT}/shared/" --overwrite 2
 
 # Verify essential files exist, retry if sync is still in progress
 RETRY=0
-while [ ! -f "${WORKSPACE}/openclaw.json" ] || [ ! -f "${WORKSPACE}/SOUL.md" ]; do
+while [ ! -f "${WORKSPACE}/openclaw.json" ] || [ ! -f "${WORKSPACE}/SOUL.md" ] \
+      || [ ! -f "${WORKSPACE}/AGENTS.md" ]; do
     RETRY=$((RETRY + 1))
     if [ "${RETRY}" -gt 6 ]; then
-        log "ERROR: openclaw.json or SOUL.md not found after retries. Manager may not have created this Worker's config yet."
+        log "ERROR: openclaw.json, SOUL.md or AGENTS.md not found after retries. Manager may not have created this Worker's config yet."
         exit 1
     fi
     log "Waiting for config files to appear in MinIO (attempt ${RETRY}/6)..."
@@ -52,13 +53,33 @@ done
 mkdir -p /root/.openclaw
 ln -sf "${WORKSPACE}/openclaw.json" /root/.openclaw/openclaw.json
 
-# Copy default AGENTS.md from image (don't overwrite MinIO-synced version)
-cp -n /opt/hiclaw/agent/AGENTS.md "${WORKSPACE}/AGENTS.md" 2>/dev/null || true
-# Bootstrap file-sync skill from image if not already provided by Manager via MinIO
-mkdir -p "${WORKSPACE}/skills/file-sync"
-cp -rn /opt/hiclaw/agent/skills/file-sync/* "${WORKSPACE}/skills/file-sync/"
-
 log "Worker config pulled successfully"
+
+# ============================================================
+# Step 2.5: Check for builtin updates from Manager-published templates
+# ============================================================
+log "Updating builtins from shared/builtins/worker/..."
+
+# AGENTS.md: overwrite from builtins (Manager-managed, no user customization)
+mc cp "hiclaw/hiclaw-storage/shared/builtins/worker/AGENTS.md" \
+    "${WORKSPACE}/AGENTS.md" 2>/dev/null \
+    && mc cp "${WORKSPACE}/AGENTS.md" \
+        "hiclaw/hiclaw-storage/agents/${WORKER_NAME}/AGENTS.md" 2>/dev/null \
+    || true
+
+# skills/: refresh each assigned skill from builtins if a builtin source exists
+# Do NOT add/remove skills — that is the Manager's job via push-worker-skills.sh
+for _skill_name in $(ls "${WORKSPACE}/skills/" 2>/dev/null); do
+    mc mirror "hiclaw/hiclaw-storage/shared/builtins/worker/skills/${_skill_name}/" \
+        "${WORKSPACE}/skills/${_skill_name}/" --overwrite 2>/dev/null \
+        && find "${WORKSPACE}/skills/${_skill_name}" -name '*.sh' -exec chmod +x {} + 2>/dev/null \
+        && mc mirror "${WORKSPACE}/skills/${_skill_name}/" \
+            "hiclaw/hiclaw-storage/agents/${WORKER_NAME}/skills/${_skill_name}/" --overwrite 2>/dev/null \
+        || true
+done
+
+# Ensure hiclaw-sync symlink is functional (wrapper script calls workspace path)
+ln -sf "${WORKSPACE}/skills/file-sync/scripts/hiclaw-sync.sh" /usr/local/bin/hiclaw-sync 2>/dev/null || true
 
 # ============================================================
 # Step 3: Start file sync
