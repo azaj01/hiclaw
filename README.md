@@ -28,12 +28,12 @@ See **[docs/quickstart.md](docs/quickstart.md)** for a step-by-step guide from z
 ### 30-Second Overview
 
 ```bash
-# Option A: Using Make (for developers)
+# Option A: One-line install
+bash <(curl -sSL https://higress.ai/hiclaw/install.sh)
+
+# Option B: Using Make (for developers)
 git clone https://github.com/higress-group/hiclaw.git && cd hiclaw
 HICLAW_LLM_API_KEY="sk-xxx" make install
-
-# Option B: One-line install (no git clone needed)
-curl -fsSL https://raw.githubusercontent.com/higress-group/hiclaw/main/install/hiclaw-install.sh | bash -s manager
 
 # Then open Element Web and chat with your Manager Agent
 # http://matrix-client-local.hiclaw.io:8080
