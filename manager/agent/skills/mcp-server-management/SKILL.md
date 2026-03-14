@@ -233,8 +233,17 @@ bash /opt/hiclaw/agent/skills/mcp-server-management/scripts/setup-mcp-server.sh 
 ### After Running
 
 1. Wait ~10s for the auth plugin to activate
-2. Confirm to the user that the MCP server is configured
-3. @mention each existing Worker in their Room to notify them about the new MCP tools:
+2. Use your **mcporter skill** to verify the new MCP server works correctly before notifying Workers:
+   - `mcporter --config ~/mcporter-servers.json list` — confirm the server appears and is healthy
+   - `mcporter --config ~/mcporter-servers.json list <server-name> --schema` — review available tools
+   - Call at least one representative tool to verify end-to-end connectivity and correct responses
+   - If any test fails, debug and fix before proceeding — do not push broken tools to Workers
+3. Confirm to the user that the MCP server is configured and tested
+4. Notify relevant Workers — do **not** broadcast to all Workers. Only @mention Workers that:
+   - The user explicitly asked you to notify, or
+   - You judge will need this tool based on their current task or role
+   
+   Message format:
    ```
    @{worker}:{domain} New MCP server `{mcp-server-name}` has been configured with tools: {tool list from YAML}.
    Please use your file-sync skill to pull the updated mcporter-servers.json, then use your mcporter skill to discover and learn the new tools.
