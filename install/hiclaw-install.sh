@@ -457,8 +457,8 @@ msg() {
         # --- Matrix E2EE ---
         "matrix_e2ee.title.zh") text="--- Matrix 端到端加密（E2EE）---" ;;
         "matrix_e2ee.title.en") text="--- Matrix End-to-End Encryption (E2EE) ---" ;;
-        "matrix_e2ee.desc.zh") text="E2EE 会对 Manager 与 Worker 之间的 Matrix 消息进行端到端加密。\n  启用后，即使 Matrix 服务器被入侵，消息内容也无法被窃取。\n  但 E2EE 会增加首次握手耗时，且要求所有 Agent 都支持 matrix-sdk-crypto。\n  如果不确定，建议保持禁用。" ;;
-        "matrix_e2ee.desc.en") text="E2EE encrypts Matrix messages between Manager and Workers end-to-end.\n  When enabled, message content stays private even if the Matrix server is compromised.\n  However, E2EE adds overhead to the initial handshake and requires all Agents\n  to support matrix-sdk-crypto. If unsure, keep it disabled." ;;
+        "matrix_e2ee.desc.zh") text="E2EE 会对 Manager 与 Worker 之间的 Matrix 消息进行端到端加密。\n  启用后，即使 Matrix 服务器被入侵，消息内容也无法被窃取。\n  但 E2EE 会增加首次握手耗时，且要求所有 Agent 都支持 matrix-sdk-crypto。\n  如果不确定，建议保持禁用。\n  ⚠ 注意：禁用 E2EE 后，请勿在 Element 上创建默认启用加密的 Private 房间，\n  否则 Agent 将无法读取该房间中的加密消息。请改用 Public 房间或关闭房间加密。" ;;
+        "matrix_e2ee.desc.en") text="E2EE encrypts Matrix messages between Manager and Workers end-to-end.\n  When enabled, message content stays private even if the Matrix server is compromised.\n  However, E2EE adds overhead to the initial handshake and requires all Agents\n  to support matrix-sdk-crypto. If unsure, keep it disabled.\n  ⚠ Note: When E2EE is disabled, do NOT create Private rooms in Element (which\n  enable encryption by default) — Agents cannot read encrypted messages without\n  E2EE support. Use Public rooms or turn off room encryption instead." ;;
         "matrix_e2ee.enable.zh") text="启用 E2EE" ;;
         "matrix_e2ee.enable.en") text="Enable E2EE" ;;
         "matrix_e2ee.disable.zh") text="禁用 E2EE（推荐）" ;;

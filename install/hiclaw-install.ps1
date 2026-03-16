@@ -20,6 +20,7 @@
 #   HICLAW_ADMIN_PASSWORD     Admin password     (auto-generated if not set, min 8 chars)
 #   HICLAW_MATRIX_DOMAIN      Matrix domain      (default: matrix-local.hiclaw.io:18080)
 #   HICLAW_MOUNT_SOCKET       Mount container runtime socket (default: 1)
+#   HICLAW_MATRIX_E2EE        Matrix E2EE        (default: 0, disabled)
 #   HICLAW_DATA_DIR           Docker volume name for persistent data (default: hiclaw-data)
 #   HICLAW_WORKSPACE_DIR      Host directory for manager workspace (default: ~/hiclaw-manager)
 #   HICLAW_VERSION            Image tag          (default: latest)
@@ -355,6 +356,18 @@ $script:Messages = @{
     "worker_runtime.copaw" = @{ zh = "CoPaw（Python 容器，~150MB 内存，默认关闭控制台，可跟 Manager 对话按需开启）"; en = "CoPaw (Python container, ~150MB RAM, console off by default, enable on demand via Manager)" }
     "worker_runtime.choice" = @{ zh = "请选择 [1/2]"; en = "Enter choice [1/2]" }
     "worker_runtime.selected" = @{ zh = "默认 Worker 运行时: {0}"; en = "Default Worker runtime: {0}" }
+
+    # --- Matrix E2EE ---
+    "matrix_e2ee.title" = @{ zh = "--- Matrix 端到端加密（E2EE）---"; en = "--- Matrix End-to-End Encryption (E2EE) ---" }
+    "matrix_e2ee.desc" = @{
+        zh = "E2EE 会对 Manager 与 Worker 之间的 Matrix 消息进行端到端加密。`n  启用后，即使 Matrix 服务器被入侵，消息内容也无法被窃取。`n  但 E2EE 会增加首次握手耗时，且要求所有 Agent 都支持 matrix-sdk-crypto。`n  如果不确定，建议保持禁用。`n  ⚠ 注意：禁用 E2EE 后，请勿在 Element 上创建默认启用加密的 Private 房间，`n  否则 Agent 将无法读取该房间中的加密消息。请改用 Public 房间或关闭房间加密。"
+        en = "E2EE encrypts Matrix messages between Manager and Workers end-to-end.`n  When enabled, message content stays private even if the Matrix server is compromised.`n  However, E2EE adds overhead to the initial handshake and requires all Agents`n  to support matrix-sdk-crypto. If unsure, keep it disabled.`n  ⚠ Note: When E2EE is disabled, do NOT create Private rooms in Element (which`n  enable encryption by default) — Agents cannot read encrypted messages without`n  E2EE support. Use Public rooms or turn off room encryption instead."
+    }
+    "matrix_e2ee.enable" = @{ zh = "启用 E2EE"; en = "Enable E2EE" }
+    "matrix_e2ee.disable" = @{ zh = "禁用 E2EE（推荐）"; en = "Disable E2EE (recommended)" }
+    "matrix_e2ee.choice" = @{ zh = "请选择 [1/2]"; en = "Enter choice [1/2]" }
+    "matrix_e2ee.selected_enabled" = @{ zh = "Matrix E2EE: 已启用"; en = "Matrix E2EE: enabled" }
+    "matrix_e2ee.selected_disabled" = @{ zh = "Matrix E2EE: 已禁用（默认）"; en = "Matrix E2EE: disabled (default)" }
 
     # --- Worker idle timeout ---
     "idle_timeout.prompt" = @{ zh = "Worker 空闲自动停止超时（分钟）[720]"; en = "Worker idle auto-stop timeout in minutes [720]" }
@@ -698,6 +711,9 @@ HICLAW_COPAW_WORKER_IMAGE=$($Config.COPAW_WORKER_IMAGE)
 
 # Default Worker runtime (openclaw | copaw)
 HICLAW_DEFAULT_WORKER_RUNTIME=$($Config.DEFAULT_WORKER_RUNTIME)
+
+# Matrix E2EE (0=disabled, 1=enabled; default: 0)
+HICLAW_MATRIX_E2EE=$($Config.MATRIX_E2EE)
 
 # Worker idle timeout in minutes (default: 720 = 12 hours)
 HICLAW_WORKER_IDLE_TIMEOUT=$($Config.WORKER_IDLE_TIMEOUT)
@@ -1647,6 +1663,40 @@ function Install-Manager {
         $config.DEFAULT_WORKER_RUNTIME = if ($rtChoice -eq "2") { "copaw" } else { "openclaw" }
     }
     Write-Log (Get-Msg "worker_runtime.selected" -f $config.DEFAULT_WORKER_RUNTIME)
+
+    # Matrix E2EE (shown in manual mode for fresh install; always shown during upgrade)
+    if (-not $script:HICLAW_NON_INTERACTIVE -and (-not $script:HICLAW_QUICKSTART -or $script:HICLAW_UPGRADE)) {
+        Write-Host ""
+        Write-Log (Get-Msg "matrix_e2ee.title")
+        Write-Host ""
+        Write-Host "  $(Get-Msg 'matrix_e2ee.desc')"
+        Write-Host ""
+        Write-Host "  1) $(Get-Msg 'matrix_e2ee.disable')"
+        Write-Host "  2) $(Get-Msg 'matrix_e2ee.enable')"
+        Write-Host ""
+        if ($script:HICLAW_UPGRADE -and $env:HICLAW_MATRIX_E2EE) {
+            Write-Log (Get-Msg "prompt.upgrade_keep" -f "HICLAW_MATRIX_E2EE", $env:HICLAW_MATRIX_E2EE)
+            $e2eeChoice = Read-Host (Get-Msg "matrix_e2ee.choice")
+            if ($e2eeChoice) {
+                $config.MATRIX_E2EE = if ($e2eeChoice -eq "2") { "1" } else { "0" }
+            } else {
+                $config.MATRIX_E2EE = $env:HICLAW_MATRIX_E2EE
+            }
+        } elseif (-not $env:HICLAW_MATRIX_E2EE) {
+            $e2eeChoice = Read-Host (Get-Msg "matrix_e2ee.choice")
+            $e2eeChoice = if ($e2eeChoice) { $e2eeChoice } else { "1" }
+            $config.MATRIX_E2EE = if ($e2eeChoice -eq "2") { "1" } else { "0" }
+        } else {
+            $config.MATRIX_E2EE = $env:HICLAW_MATRIX_E2EE
+        }
+    } else {
+        $config.MATRIX_E2EE = if ($env:HICLAW_MATRIX_E2EE) { $env:HICLAW_MATRIX_E2EE } else { "0" }
+    }
+    if ($config.MATRIX_E2EE -eq "1") {
+        Write-Log (Get-Msg "matrix_e2ee.selected_enabled")
+    } else {
+        Write-Log (Get-Msg "matrix_e2ee.selected_disabled")
+    }
 
     # Worker idle timeout (minutes, default: 720 = 12 hours)
     if (-not $script:HICLAW_NON_INTERACTIVE -and (-not $script:HICLAW_QUICKSTART -or $script:HICLAW_UPGRADE)) {
