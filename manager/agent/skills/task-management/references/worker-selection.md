@@ -52,8 +52,8 @@ The `find-worker.sh` output already includes `container_status` and `availabilit
 
 If you already ran `find-worker.sh`, do NOT run a separate container check. Only run standalone check when assigning to an explicitly named Worker (Step 0 was skipped).
 
-## Skills API URL (only when creating a new Worker)
+## Skills Registry (only when creating a new Worker)
 
-Check default: `echo "${HICLAW_SKILLS_API_URL}"`
+Check registry URL: `echo "${HICLAW_SKILLS_API_URL:-https://skills.sh}"`
 
-`find-skills` is a builtin skill (always available). Optionally ask admin for a custom registry URL and pass to `create-worker.sh` via `--skills-api-url`.
+`find-skills` is a builtin skill (always available). You can optionally ask admin for a custom registry URL and pass it to `create-worker.sh` via `--skills-api-url`.
